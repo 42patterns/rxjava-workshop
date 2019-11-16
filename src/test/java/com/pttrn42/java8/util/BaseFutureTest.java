@@ -3,10 +3,18 @@ package com.pttrn42.java8.util;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.pttrn42.java8.db.DB;
 import com.pttrn42.java8.db.Query;
+<<<<<<< HEAD
 import com.pttrn42.java8.stackoverflow.ArtificialSleepWrapper;
 import com.pttrn42.java8.stackoverflow.HttpStackOverflowClient;
 import com.pttrn42.java8.stackoverflow.InjectErrorsWrapper;
 import com.pttrn42.java8.stackoverflow.LoadFromDiskHttpStackOverflowClient;
+=======
+import com.pttrn42.java8.stackoverflow.AlwaysFailHttpStackOverflowClient;
+import com.pttrn42.java8.stackoverflow.ArtificialSleepWrapper;
+import com.pttrn42.java8.stackoverflow.FallbackStubClient;
+import com.pttrn42.java8.stackoverflow.HttpStackOverflowClient;
+import com.pttrn42.java8.stackoverflow.InjectErrorsWrapper;
+>>>>>>> Support, util and domain classes
 import com.pttrn42.java8.stackoverflow.LoggingWrapper;
 import com.pttrn42.java8.stackoverflow.StackOverflowClient;
 import org.junit.After;
