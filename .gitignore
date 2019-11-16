@@ -1,0 +1,10 @@
+build/
+*.iml
+.idea
+.gradle/
+log/
+classes/
+target/
+out/
+.DS_STORE
+/path_IS_UNDEFINED
