@@ -35,10 +35,10 @@ public class J25_ZipTest extends BaseFutureTest {
 
 		//map question to it's length
 		//combine length of both questions
-		final CompletableFuture<Integer> f1 = null;
-		final CompletableFuture<Integer> f2 = null;
+		final CompletableFuture<Integer> f1 = java.thenApply(s -> s.length());
+		final CompletableFuture<Integer> f2 = scala.thenApply(s -> s.length());
 
-		final CompletableFuture<Integer> sum = null;
+		final CompletableFuture<Integer> sum = f1.thenCombine(f2, Integer::sum);
 
 		sum.thenAccept(s -> log.debug("Sum: {}", s));
 		assertThat(sum.get(), CoreMatchers.equalTo(137));
@@ -49,7 +49,8 @@ public class J25_ZipTest extends BaseFutureTest {
 		final CompletableFuture<String> java = questions("java");
 		final CompletableFuture<String> scala = questions("scala");
 
-		final CompletableFuture<String> both = null;
+		final CompletableFuture<String> both = java.
+				applyToEither(scala, String::toUpperCase);
 
 		both.thenAccept(title -> log.debug("First: {}", title));
 

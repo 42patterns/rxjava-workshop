@@ -51,7 +51,10 @@ public class J24_FlatMapTest extends BaseFutureTest {
 		//what can I use??
 		//user thenAccept or thenCompose method. which one is better??
 
-		CompletableFuture<Integer> httpStatusFuture = null;
+		CompletableFuture<Integer> httpStatusFuture = javaQuestions()
+				.thenCompose(this::findMostInterestingQuestion)
+				.thenCompose(this::googleAnswer)
+				.thenCompose(this::postAnswer);;
 
 		httpStatusFuture.thenAccept(status -> {
 			assertThat(status, CoreMatchers.equalTo(HttpStatus.OK.value()));

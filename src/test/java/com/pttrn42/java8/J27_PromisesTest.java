@@ -56,8 +56,15 @@ public class J27_PromisesTest extends BaseFutureTest {
 	}
 
 	private void waitForNewFileInSeparateThread(final CompletableFuture<Path> promise) {
-		//TODO: create a promise as a new thread
 		new Thread("FileSystemWatcher") {
+			@Override
+			public void run() {
+				try {
+					promise.complete(waitForNewFileOnDesktop());
+				} catch (Exception e) {
+					promise.completeExceptionally(e);
+				}
+			}
 		}.start();
 	}
 

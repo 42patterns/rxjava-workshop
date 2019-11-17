@@ -27,7 +27,9 @@ public class J26_AllAnyTest extends BaseFutureTest {
         final CompletableFuture<String> clojure = questions("clojure");
         final CompletableFuture<String> groovy = questions("groovy");
 
-        final CompletableFuture<Void> allCompleted = null;
+        final CompletableFuture<Void> allCompleted = CompletableFuture.allOf(
+                java, scala, clojure, groovy
+        );
 
         allCompleted.thenRun(() -> {
             assertThat(java.join(), equalTo("Why don't common Map implementations cache the result of Map.containsKey() for Map.get()"));
@@ -44,7 +46,9 @@ public class J26_AllAnyTest extends BaseFutureTest {
         final CompletableFuture<String> clojure = questions("clojure");
         final CompletableFuture<String> groovy = questions("groovy");
 
-        final CompletableFuture<Object> firstCompleted = null;
+        final CompletableFuture<Object> firstCompleted = CompletableFuture.anyOf(
+                java, scala, clojure, groovy
+        );
 
         firstCompleted.thenAccept((Object result) -> {
             log.debug("Finished java: {}", java.isDone());

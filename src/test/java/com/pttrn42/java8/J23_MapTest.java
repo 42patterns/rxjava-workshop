@@ -25,7 +25,8 @@ public class J23_MapTest extends BaseFutureTest {
 
     @Test
     public void should_return_length_of_java_question() {
-        final CompletableFuture<Document> java = null;
+        final CompletableFuture<Document> java = CompletableFuture.supplyAsync(() ->
+                        client.mostRecentQuestionsAbout("java"));
 
         final Document document = java.join();       //blocks
         final Element element = document.select("a.question-hyperlink").get(0);
@@ -38,7 +39,8 @@ public class J23_MapTest extends BaseFutureTest {
 
     @Test
     public void should_return_length_of_java_question_blocking_at_the_end() {
-        final CompletableFuture<Document> java = null;
+        final CompletableFuture<Document> java = CompletableFuture.supplyAsync(() ->
+                        client.mostRecentQuestionsAbout("java"));
 
         final CompletableFuture<Integer> length = java.
                 thenApply(doc -> doc.select("a.question-hyperlink").get(0)).

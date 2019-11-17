@@ -65,7 +65,10 @@ public class J28_CustomFutureOperatorsTest {
 		//given
 		CompletableFuture<String> primary = FutureOps.never();
 		CompletableFuture<String> timeout = FutureOps.timeoutAfter(Duration.ofMillis(100));
-		CompletableFuture<String> any = null;
+		CompletableFuture<String> any = primary
+				.applyToEither(timeout, Function.identity())
+				.handle((result, exception) ->
+						result != null ? result : "Fallback");
 
 		//when
 		final String fallback = any.get(1, SECONDS);
@@ -116,10 +119,16 @@ public class J28_CustomFutureOperatorsTest {
 
 		final List<CompletableFuture<Integer>> futures = Arrays.asList(later, tooLate, immediately, never);
 
-		final List<CompletableFuture<Integer>> withTimeouts = null;
+		final List<CompletableFuture<Integer>> withTimeouts = futures
+				.stream()
+				.map(f -> {
+					final CompletableFuture<Integer> timeout = FutureOps.timeoutAfter(Duration.ofSeconds(1));
+					return f.applyToEither(timeout, Function.identity());
+				})
+				.collect(toList());
 
 		//when
-		CompletableFuture<List<Integer>> fastAndSuccess = null;
+		CompletableFuture<List<Integer>> fastAndSuccess = FutureOps.ignoreFailures(withTimeouts);
 
 		//then
 		assertThat(fastAndSuccess.get(1, TimeUnit.SECONDS), hasItems(42, 45));
@@ -143,28 +152,61 @@ class FutureOps {
 	}
 
 	public static <T> CompletableFuture<T> never() {
-		throw new UnsupportedOperationException("never()");
+		return new CompletableFuture<>();
 	}
 
 	/**
 	 * Fails with {@link TimeoutException} after given time
 	 */
 	public static <T> CompletableFuture<T> timeoutAfter(Duration duration) {
-		throw new UnsupportedOperationException("timeoutAfter()");
+		final CompletableFuture<T> promise = new CompletableFuture<>();
+		pool.schedule(
+				() -> promise.completeExceptionally(new TimeoutException()),
+				duration.toMillis(), TimeUnit.MILLISECONDS);
+		return promise;
 	}
 
 	/**
 	 * Should not block but return {@link CompletableFuture} immediately.
 	 */
 	public static <T> CompletableFuture<T> toCompletable(Future<T> future) {
-		throw new UnsupportedOperationException("toCompletable()");
+		final CompletableFuture<T> promise = new CompletableFuture<>();
+		pool.submit(() -> promise.complete(future.get()));
+		return promise;
 	}
 
 	/**
 	 * Filters out futures that failed. Preserves order of input, no matter what was the completion order
 	 */
 	public static <T> CompletableFuture<List<T>> ignoreFailures(List<CompletableFuture<T>> futures) {
-		throw new UnsupportedOperationException("ignoreFailures()");
+		final CompletableFuture<List<T>> promise = new CompletableFuture<>();
+		final List<T> results = new CopyOnWriteArrayList<>();
+		IntStream.range(0, futures.size()).forEach(i -> results.add(null));
+		waitForAllToCompleteOrFail(futures, promise, results);
+		return promise;
+	}
+
+	private static <T> void waitForAllToCompleteOrFail(List<CompletableFuture<T>> futures, CompletableFuture<List<T>> promise, List<T> results) {
+		final AtomicInteger counter = new AtomicInteger(futures.size());
+		for (int i = 0; i < futures.size(); i++) {
+			final int idx = i;
+			futures.get(i).handle((BiFunction<T, Throwable, T>) (result, throwable) -> {
+				if (result != null) {
+					results.set(idx, result);
+				}
+				if (counter.decrementAndGet() == 0) {
+					promise.complete(filterOutNulls(results));
+				}
+				return null;
+			});
+		}
+	}
+
+	private static <T> List<T> filterOutNulls(List<T> results) {
+		return results
+				.stream()
+				.filter(x -> x != null)
+				.collect(toList());
 	}
 
 	/**
@@ -174,7 +216,11 @@ class FutureOps {
 	 * @return {@link CompletableFuture} which completes after underlying future with given duration
 	 */
 	public static <T> CompletableFuture<T> delay(CompletableFuture<T> future, Duration duration) {
-		throw new UnsupportedOperationException("delay()");
+		final CompletableFuture<T> promise = new CompletableFuture<>();
+		future.thenAccept(result -> {
+			pool.schedule(() -> promise.complete(result), duration.toMillis(), TimeUnit.MILLISECONDS);
+		});
+		return promise;
 	}
 
 }

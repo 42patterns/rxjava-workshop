@@ -39,7 +39,7 @@ public class J21_FuturesIntroductionTest extends BaseFutureTest {
 
     @Test
     public void should_perform_asynchronous_operation() throws Exception {
-        final Callable<String> task = null;
+        final Callable<String> task = () -> client.mostRecentQuestionAbout("java");
         final Future<String> javaQuestionFuture = executorService.submit(task);
         final String javaQuestion = javaQuestionFuture.get();
         log.debug("Found: '{}'", javaQuestion);
@@ -56,9 +56,8 @@ public class J21_FuturesIntroductionTest extends BaseFutureTest {
         // * to execute tasks.  This class arranges that submitted tasks are,
         // * upon completion, placed on a queue accessible using {@code take}.
         CompletionService<String> completionService = new ExecutorCompletionService<>(executorService);
-        completionService.submit(() -> {
-            throw new UnsupportedOperationException("Not implemented");
-        });
+        completionService.submit(() -> java.get());
+        completionService.submit(() -> scala.get());
 
         String result = completionService.take().get();
 
@@ -74,9 +73,8 @@ public class J21_FuturesIntroductionTest extends BaseFutureTest {
         final Future<String> scala = findQuestionsAbout("scala");
 
         CompletionService<String> completionService = new ExecutorCompletionService<>(executorService);
-        completionService.submit(() -> {
-            throw new UnsupportedOperationException("Not implemented");
-        });
+        completionService.submit(() -> java.get());
+        completionService.submit(() -> scala.get());
 
         List<String> results = new ArrayList<>();
 
