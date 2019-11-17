@@ -17,7 +17,7 @@ public class R010_LetsMeetSingle {
 	@Test
 	public void helloSingleWithRxTest() throws Exception {
 		//given
-		final Single<String> reactor = null;
+		final Single<String> reactor = Single.just("RxJava");
 
 		//then
 		reactor.test()
@@ -30,7 +30,7 @@ public class R010_LetsMeetSingle {
 	@Test
 	public void helloSingle() throws Exception {
 		//given
-		final Single<String> reactor = null;
+		final Single<String> reactor = Single.just("RxJava");
 
 		//when
 		final String value = reactor.blockingGet();
@@ -42,7 +42,7 @@ public class R010_LetsMeetSingle {
 	@Test
 	public void errorSingle() throws Exception {
 		//given
-		final Single<String> error = null;
+		final Single<String> error = Single.error(new UnsupportedOperationException("Simulated"));
 
 		//when
 		try {
@@ -61,6 +61,7 @@ public class R010_LetsMeetSingle {
 
 		//when
 		//TODO: use counter.incrementAndGet() eagerly
+		Single.just(counter.incrementAndGet());
 
 		//then
 		assertThat(counter.get(), is(1));
@@ -73,18 +74,18 @@ public class R010_LetsMeetSingle {
 
 		//when
 		//TODO: use counter.incrementAndGet() lazily
-		Single<Integer> Single = null;
+		Single<Integer> single = Single.fromCallable(() -> counter.incrementAndGet());
 
 		//then
 		assertThat(counter.get(), is(0));
-		assertThat(Single.blockingGet(), is(1));
+		assertThat(single.blockingGet(), is(1));
 	}
 
 	@Test
 	public void lazyWithoutCaching() throws Exception {
 		//given
 		AtomicInteger counter = new AtomicInteger();
-		final Single<Integer> lazy = null; //TODO: call lazily
+		final Single<Integer> lazy = Single.fromCallable(() -> counter.incrementAndGet());
 
 		//when
 		final Integer first = lazy.blockingGet();
@@ -102,7 +103,8 @@ public class R010_LetsMeetSingle {
 	public void cachingSingleComputesOnlyOnce() throws Exception {
 		//given
 		AtomicInteger counter = new AtomicInteger();
-		final Single<Integer> lazy = Single.fromCallable(counter::incrementAndGet);
+		final Single<Integer> lazy = Single.fromCallable(counter::incrementAndGet)
+				.cache();
 
 		//when
 		lazy.blockingGet();

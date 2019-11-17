@@ -28,7 +28,9 @@ public class R025_ReadingFileFromStream {
 	@Test
 	public void readFileAsStreamOfLines() throws Exception {
 		//when
-		final Observable<String> lines = null;
+		final Observable<String> lines = Observable.fromIterable(() ->
+				open("/logback-test.xml").lines().iterator()
+		);
 
 		//then
 		final Long count = lines
@@ -52,7 +54,7 @@ public class R025_ReadingFileFromStream {
 	@Test
 	public void readingFileShouldBeLazy() throws Exception {
 		//when
-		final Observable<String> lines = notFound();
+		final Observable<String> lines = Observable.defer(() -> notFound());
 
 		//then
 		lines.test()

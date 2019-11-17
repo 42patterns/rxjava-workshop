@@ -28,7 +28,7 @@ public class R045_ErrorHandling {
 		final Maybe<String> err = Maybe.error(new RuntimeException("Opps"));
 
 		//when
-		final Maybe<String> withFallback = null;
+		final Maybe<String> withFallback = err.onErrorReturn(__ -> "Fallback");
 
 		//then
 		err.test()
@@ -58,7 +58,8 @@ public class R045_ErrorHandling {
 		});
 
 		//when
-		final Maybe<String> withError = null;
+		final Maybe<String> withError = cheapButDangerous
+				.onErrorResumeNext(e -> expensive);
 
 		//then
 		withError.test()
@@ -91,7 +92,11 @@ public class R045_ErrorHandling {
 	 * @see Maybe#onErrorResumeNext(Function)
 	 */
 	private Maybe<Integer> handle(Maybe<Integer> careful) {
-		throw new IllegalStateException("Not implemented!");
+		return careful.onErrorResumeNext(t -> {
+			if (IllegalArgumentException.class.isInstance(t)) return Maybe.just(-1);
+			if (IllegalStateException.class.isInstance(t)) return Maybe.just(-2);
+			return Maybe.error(t);
+		});
 	}
 
 	private Maybe<Integer> danger(int id) {
@@ -135,7 +140,7 @@ public class R045_ErrorHandling {
 	@Test
 	public void fixEagerMaybe() throws Exception {
 		//given
-		final Maybe<User> maybe = broken();
+		final Maybe<User> maybe = Maybe.defer(() -> broken());
 
 		//when
 		final Maybe<User> retried = maybe.retry();

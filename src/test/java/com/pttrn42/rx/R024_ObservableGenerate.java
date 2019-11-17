@@ -39,7 +39,11 @@ public class R024_ObservableGenerate {
 	public void generateRandomStreamOfNumbers() throws Exception {
 		//given
 		final Observable<Float> randoms = Observable
-				.generate(sink -> {});
+				.generate(sink -> {
+					final float rand = ThreadLocalRandom.current().nextFloat();
+					log.debug("Returning {}", rand);
+					sink.onNext(rand);
+				});
 
 		//when
 		final Observable<Float> twoRandoms = randoms.take(2); //how many should we take
@@ -65,7 +69,8 @@ public class R024_ObservableGenerate {
 				});
 
 		//when
-		final Observable<Boolean> thousandBooleans = randoms;
+		final Observable<Boolean> thousandBooleans = randoms
+				.take(total); //how many?
 
 		//then
 		final Long trues = thousandBooleans.filter(x -> x == true).count().blockingGet();
@@ -82,9 +87,11 @@ public class R024_ObservableGenerate {
 	@Test(timeout = 1_000)
 	public void statefulGenerate() throws Exception {
 		//given
-		final Observable<Integer> naturals = Observable.generate(
-				() -> 0,
-				(state, sink) -> {});
+		final Observable<Integer> naturals = Observable.generate(() -> 0,
+				(state, sink) -> {
+					sink.onNext(state);
+					return state + 1;
+				});
 
 		//when
 		final Observable<Integer> three = naturals
@@ -103,7 +110,10 @@ public class R024_ObservableGenerate {
 	public void powersOfTwo() throws Exception {
 		//given
 		final Observable<BigInteger> naturals = Observable.generate(() -> ONE,
-				(state, sink) -> {});
+				(state, sink) -> {
+					sink.onNext(BigInteger.valueOf(2).pow(state.intValue()));
+					return state.add(ONE);
+				});
 
 		//when
 		final Observable<BigInteger> three = naturals
@@ -121,7 +131,7 @@ public class R024_ObservableGenerate {
 	/**
 	 * TODO Generate Fibonacci sequence. Hints:
 	 * <p><ul>
-	 * <li>Your initial state is a pair <code>(0L, 1L)</code> ({@link com.pttrn42.rx.samples.Tuple#of(Object, Object)})</li>
+	 * <li>Your initial state is a pair <code>(0L, 1L)</code> ({@link Tuple#of(Object, Object)})</li>
 	 * <li>The first item is the sum <code>0 + 1</code></li>
 	 * <li>New state is the right value from a pair and a sum: <code>(a, b) -> (b, a + b)</code></li>
 	 * </ul>
@@ -137,7 +147,12 @@ public class R024_ObservableGenerate {
 	@Test(timeout = 3_000)
 	public void fibonacci() throws Exception {
 		//given
-		final Observable<Long> fib = null;
+		final Observable<Long> fib = Observable.generate(
+				() -> Tuple.of(0, 1),
+				(p, sink) -> {
+					sink.onNext(Long.valueOf(p.getValue() + p.getKey()));
+					return Tuple.of(p.getValue(), p.getValue() + p.getKey());
+				});
 
 		//when
 		final Observable<Long> first10 = fib.take(10);
@@ -157,7 +172,12 @@ public class R024_ObservableGenerate {
 	@Test(timeout = 1_000)
 	public void compute1000thFibonacciUsingBigInteger() throws Exception {
 		//given
-		final Observable<BigInteger> fib = null;
+		final Observable<BigInteger> fib = Observable.generate(
+				() -> Tuple.of(BigInteger.ZERO, BigInteger.ONE),
+				(p, sink) -> {
+					sink.onNext(p.getValue().add(p.getKey()));
+					return Tuple.of(p.getValue(), p.getValue().add(p.getKey()));
+				});
 
 
 		//when
@@ -180,7 +200,12 @@ public class R024_ObservableGenerate {
 	@Test(timeout = 1_000)
 	public void prependFirstTwoFibonacci() throws Exception {
 		//given
-		final Observable<BigInteger> fib = null;
+		final Observable<BigInteger> fib = Observable.generate(
+				() -> Tuple.of(BigInteger.ZERO, BigInteger.ONE),
+				(p, sink) -> {
+					sink.onNext(p.getValue().add(p.getKey()));
+					return Tuple.of(p.getValue(), p.getValue().add(p.getKey()));
+				});
 
 
 		//when
@@ -211,11 +236,12 @@ public class R024_ObservableGenerate {
 		//given
 		Observable<String> lines = Observable
 				.generate(
-						() -> (BufferedReader) null /* TODO initial state, read /logback-test.xml */,
+						() -> (BufferedReader) open("/logback-test.xml") /* TODO initial state, read /logback-test.xml */,
 						(reader, sink) -> {
 							readLine(reader, sink);
 							return reader;
-						} /* TODO something here */);
+						},
+						this::closeQuitely /* TODO something here */);
 
 		//when
 		final Observable<String> first10lines = lines.take(10);
@@ -231,7 +257,15 @@ public class R024_ObservableGenerate {
 	@Test(timeout = 1_000)
 	public void makeSureWeUnderstandEndOfFile() throws Exception {
 		//given
-		Observable<String> lines = null;
+		Observable<String> lines = Observable
+				.generate(
+						() -> (BufferedReader) open("/logback-test.xml") /* TODO initial state, read /logback-test.xml */,
+						(reader, sink) -> {
+							readLine(reader, sink);
+							return reader;
+						},
+						this::closeQuitely /* TODO something here */);
+
 		//when
 
 		//then
@@ -251,6 +285,16 @@ public class R024_ObservableGenerate {
 
 	private void readLine(BufferedReader file, Emitter<String> sink) {
 		//TODO Implement, remember about end of file,
+		try {
+			String s = file.readLine();
+			if (s != null) {
+				sink.onNext(s);
+			} else {
+				sink.onComplete();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private BufferedReader open(String path) {

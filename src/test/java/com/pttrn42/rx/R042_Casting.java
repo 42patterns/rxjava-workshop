@@ -22,7 +22,7 @@ public class R042_Casting {
 		Observable<Number> nums = Observable.just(1, 2, 3);
 
 		//when
-		final Observable<Integer> ints = null;
+		final Observable<Integer> ints = nums.cast(Integer.class);
 
 		//then
 		final List<Integer> list = ints.toList().blockingGet();
@@ -35,7 +35,9 @@ public class R042_Casting {
 		Observable<Number> nums = Observable.just(1, 2.0, 3.0f);
 
 		//when
-		final Observable<Double> doubles = null;
+		final Observable<Double> doubles = nums
+				.filter(x -> Double.class.isInstance(x))
+				.cast(Double.class);
 
 		//then
 		doubles.test()

@@ -22,7 +22,7 @@ public class R030_MapAndFilter {
 		final Observable<Integer> numbers = Observable.range(5, 4);
 
 		//when
-		final Observable<Integer> even = numbers;
+		final Observable<Integer> even = numbers.map(x -> x * 2);
 
 		//then
 		even
@@ -39,7 +39,7 @@ public class R030_MapAndFilter {
 		);
 
 		//when
-		final Observable<Integer> lengths = Observable.empty();
+		final Observable<Integer> lengths = numbers.map(String::length);
 
 		//then
 		lengths.test()
@@ -58,7 +58,9 @@ public class R030_MapAndFilter {
 		);
 
 		//when
-		final Observable<String> endingWithT = words;
+		final Observable<String> endingWithT = words.filter(
+				s -> s.endsWith("t")
+		);
 
 		//then
 		assertThat(endingWithT.blockingIterable(), contains(
@@ -75,7 +77,10 @@ public class R030_MapAndFilter {
 		final Observable<String> words = Observable.fromArray(LoremIpsum.words());
 
 		//when
-		final Observable<String> lengths = words;
+		final Observable<String> lengths = words
+				.map(s -> s.replaceAll("[,\\.]", ""))
+				.filter(s -> s.startsWith("e"))
+				.filter(s -> s.endsWith("t"));
 
 		//then
 		lengths.test()

@@ -57,7 +57,7 @@ public class R020_SingleSubscribing {
 		});
 		log.info("Single was created");
 
-		final Integer result = null; //TODO: make the work happen (blocking??)
+		final Integer result = work.blockingGet(); //TODO: make the work happen (blocking??)
 
 		log.info("Work is done");
 
@@ -80,7 +80,7 @@ public class R020_SingleSubscribing {
 		//then
 		log.info("Single was created");
 
-		Disposable disposable = null; //subscription tiggers work
+		Disposable disposable = work.subscribe(); //subscription tiggers work
 
 		log.info("Work is done");
 		assertThat(disposable.isDisposed(), is(true));
@@ -124,7 +124,7 @@ public class R020_SingleSubscribing {
 		//then
 		work.subscribe(
 				i -> { /*TODO: do something here */ },
-				ex -> { /*TODO: do something here */ }
+				ex -> error.set(ex)
 		);
 
 		//Hint: you don't normally test streams like that! Don't get used to it

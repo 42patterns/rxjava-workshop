@@ -62,8 +62,7 @@ public class R021_ObservableSubscribing {
             return Stream.of(1, 2, 3).iterator();
         });
         log.info("Observable was created");
-
-        final Integer result = null; //TODO: get last value
+        final Integer result = work.blockingLast();
         log.info("Work is done");
 
         //then
@@ -87,7 +86,7 @@ public class R021_ObservableSubscribing {
         //then
         log.info("Observable was created");
 
-        Disposable d = null; //subscription tiggers work
+        Disposable d = work.subscribe(i -> log.info("Received {}", i));
 
         log.info("Work is done");
         assertThat(d.isDisposed(), is(true));
@@ -134,9 +133,9 @@ public class R021_ObservableSubscribing {
 
         //then
         work.subscribe(
-                i -> { /*TODO: do something here */ },
-                ex -> { /*TODO: do something here */ },
-                () -> { /*TODO: do something here */ }
+                onNext::add,
+                error::set,
+                () -> completed.set(true)
         );
 
         //Hint: you don't normally test streams like that! Don't get used to it
@@ -158,9 +157,9 @@ public class R021_ObservableSubscribing {
 
         //then
         work.subscribe(
-                i -> { /*TODO: do something here */ },
-                ex -> { /*TODO: do something here */ },
-                () -> { /*TODO: do something here */ }
+                onNext::add,
+                error::set,
+                () -> completed.set(true)
         );
 
         //Hint: you don't normally test streams like that! Don't get used to it
@@ -185,9 +184,9 @@ public class R021_ObservableSubscribing {
 
         //then
         work.subscribe(
-                i -> { /*TODO: do something here */ },
-                ex -> { /*TODO: do something here */ },
-                () -> { /*TODO: do something here */ }
+                onNext::add,
+                error::set,
+                () -> completed.set(true)
         );
 
         assertThat(onNext, contains(1, 2, 3));
@@ -213,9 +212,9 @@ public class R021_ObservableSubscribing {
 
         //then
         work.subscribe(
-                i -> { /*TODO: do something here */ },
-                ex -> { /*TODO: do something here */ },
-                () -> { /*TODO: do something here */ }
+                onNext::add,
+                error::set,
+                () -> completed.set(true)
         );
 
         assertThat(onNext, contains(1, 2, 3));

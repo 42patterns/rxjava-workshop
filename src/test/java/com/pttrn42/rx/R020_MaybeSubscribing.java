@@ -57,9 +57,7 @@ public class R020_MaybeSubscribing {
 			return 42;
 		});
 		log.info("Maybe was created");
-
-		final Integer result = null; //TODO: make the work happen (blocking??)
-
+		final Integer result = work.blockingGet();
 		log.info("Work is done");
 
 		//then
@@ -81,7 +79,7 @@ public class R020_MaybeSubscribing {
 		//then
 		log.info("Maybe was created");
 
-		Disposable disposable = null; //subscription tiggers work
+		Disposable disposable = work.subscribe(i -> log.info("Received {}", i));
 
 		log.info("Work is done");
 		assertThat(disposable.isDisposed(), is(true));
@@ -126,9 +124,9 @@ public class R020_MaybeSubscribing {
 
 		//then
 		work.subscribe(
-				i -> { /*TODO: do something here */ },
-				ex -> { /*TODO: do something here */ },
-				() -> { /*TODO: do something here */ }
+				i -> onNext.set(true),
+				ex -> error.set(ex),
+				() -> completed.set(true)
 		);
 
 		//Hint: you don't normally test streams like that! Don't get used to it
@@ -150,9 +148,9 @@ public class R020_MaybeSubscribing {
 
 		//then
 		work.subscribe(
-				i -> { /*TODO: do something here */ },
-				ex -> { /*TODO: do something here */ },
-				() -> { /*TODO: do something here */ }
+				i -> onNext.set(true),
+				ex -> error.set(ex),
+				() -> completed.set(true)
 		);
 
 		//Hint: you don't normally test streams like that! Don't get used to it
@@ -175,9 +173,9 @@ public class R020_MaybeSubscribing {
 
 		//then
 		work.subscribe(
-				i -> { /*TODO: do something here */ },
-				ex -> { /*TODO: do something here */ },
-				() -> { /*TODO: do something here */ }
+				i -> onNext.set(true),
+				ex -> error.set(ex),
+				() -> completed.set(true)
 		);
 
 		//Hint: you don't normally test streams like that! Don't get used to it

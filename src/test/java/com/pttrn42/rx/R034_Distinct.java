@@ -11,7 +11,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertThat;
@@ -28,7 +30,7 @@ public class R034_Distinct {
 	@Test
 	public void distinctWords() throws Exception {
 		//when
-		final Observable<String> distinct = words;
+		final Observable<String> distinct = words.distinct();
 
 		//then
 		distinct.test()
@@ -43,7 +45,7 @@ public class R034_Distinct {
 		//given
 
 		//when
-		final Observable<String> distinct = words;
+		final Observable<String> distinct = words.distinct(String::length);
 
 		//then
 		distinct.test()
@@ -54,7 +56,7 @@ public class R034_Distinct {
 	@Test
 	public void distinctWordSequences() throws Exception {
 		//when
-		final Observable<String> distinct = words;
+		final Observable<String> distinct = words.distinctUntilChanged();
 
 		//then
 		distinct.test()
@@ -74,7 +76,10 @@ public class R034_Distinct {
 		final Observable<Weather> measurements = WeatherService.measurements();
 
 		//when
-		final Observable<Weather> changes = measurements;
+		final Observable<Weather> changes = measurements
+				.distinctUntilChanged((w1, w2) ->
+						Math.abs(w1.getTemperature() - w2.getTemperature()) < 0.5
+				);
 
 		//then
 		changes
@@ -112,7 +117,7 @@ public class R034_Distinct {
 	 * TODO Generate infinite stream of e-mails. Use {@link Email#random(Fairy)}
 	 */
 	Observable<Email> emails(Fairy fairy) {
-		return Observable.empty();
+		return Observable.generate(sink -> sink.onNext(Email.random(fairy)));
 	}
 
 	/**
@@ -128,7 +133,9 @@ public class R034_Distinct {
 		final int total = 10;
 
 		//when
-		final Observable<String> distinctSenders = emails.map(Email::getFrom);
+		final Observable<String> distinctSenders = emails.distinct(
+				Email::getFrom
+		).map(Email::getFrom).take(10);
 
 		//then
 		final HashSet<String> unique = new HashSet<>(distinctSenders.toList().blockingGet());

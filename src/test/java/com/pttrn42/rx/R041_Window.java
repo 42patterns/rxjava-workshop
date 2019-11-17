@@ -29,7 +29,9 @@ public class R041_Window {
 
         //when
         final Observable<Observable<Integer>> windowsBadly = nums.window(3);
-        final Observable<List<Integer>> windows = null;
+        final Observable<List<Integer>> windows = nums
+                .window(3)
+                .flatMapSingle(Observable::toList);
 
         //then
         windows.test()
@@ -46,7 +48,9 @@ public class R041_Window {
         final Observable<Integer> nums = Observable.range(1, 8);
 
         //when
-        final Observable<List<Integer>> windows = null;
+        final Observable<List<Integer>> windows = nums
+                .window(3, 2)
+                .flatMapSingle(Observable::toList);
 
         //then
         windows.test()
@@ -63,7 +67,9 @@ public class R041_Window {
         final Observable<Integer> nums = Observable.range(1, 10);
 
         //when
-        final Observable<List<Integer>> windows = null;
+        final Observable<List<Integer>> windows = nums
+                .window(2, 3)
+                .flatMapSingle(Observable::toList);
 
         //then
         windows.test()
@@ -87,7 +93,8 @@ public class R041_Window {
                 .fromArray(LoremIpsum.words()).take(14);
 
         //when
-        final Observable<String> third = words;
+        final Observable<String> third = words.window(3)
+                .flatMapMaybe(o -> o.skip(2).singleElement());
 
         //then
         assertThat(third.toList().blockingGet(), contains("dolor", "consectetur", "Proin", "suscipit"));
@@ -107,7 +114,10 @@ public class R041_Window {
 
         //when
         //TODO operator here, add take(4)
-        final Observable<Long> fps = frames;
+        final Observable<Long> fps = frames.window(1, TimeUnit.SECONDS)
+                .flatMapSingle(
+                        Observable::count
+                ).take(4);
 
         //then
         fps.test()
@@ -131,7 +141,10 @@ public class R041_Window {
         final Observable<Boolean> pings = Ping.checkConstantly("buggy.com");
 
         //when
-        Observable<Boolean> windowPings = pings;
+        Observable<Boolean> windowPings = pings
+                .window(3, 1)
+                .flatMapSingle(p -> p.all(BooleanUtils::isFalse))
+                .take(12);
 
         //then
         windowPings.test()

@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.isA;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -21,7 +20,7 @@ public class R010_LetsMeetMaybe {
 	@Test
 	public void helloMaybeWithRxTest() throws Exception {
 		//given
-		final Maybe<String> reactor = null;
+		final Maybe<String> reactor = Maybe.just("RxJava");
 
 		//then
 		reactor.test()
@@ -34,7 +33,7 @@ public class R010_LetsMeetMaybe {
 	@Test
 	public void helloMaybe() throws Exception {
 		//given
-		final Maybe<String> reactor = null;
+		final Maybe<String> reactor = Maybe.just("RxJava");
 
 		//when
 		final String value = reactor.blockingGet();
@@ -46,7 +45,7 @@ public class R010_LetsMeetMaybe {
 	@Test
 	public void emptyMaybe() throws Exception {
 		//given
-		final Maybe<String> reactor = null;
+		final Maybe<String> reactor = Maybe.empty();
 
 		//when
 		final String value = reactor.blockingGet();
@@ -58,7 +57,7 @@ public class R010_LetsMeetMaybe {
 	@Test
 	public void errorMaybe() throws Exception {
 		//given
-		final Maybe<String> error = null;
+		final Maybe<String> error = Maybe.error(new UnsupportedOperationException("Simulated"));
 
 		//when
 		try {
@@ -76,7 +75,7 @@ public class R010_LetsMeetMaybe {
 		AtomicInteger counter = new AtomicInteger();
 
 		//when
-		//TODO: use counter.incrementAndGet() eagerly
+		Maybe.just(counter.incrementAndGet());
 
 		//then
 		assertThat(counter.get(), is(1));
@@ -88,19 +87,17 @@ public class R010_LetsMeetMaybe {
 		AtomicInteger counter = new AtomicInteger();
 
 		//when
-		//TODO: use counter.incrementAndGet() lazily
-		Maybe<Integer> maybe = null;
+		Maybe.fromCallable(() -> counter.incrementAndGet());
 
 		//then
 		assertThat(counter.get(), is(0));
-		assertThat(maybe.blockingGet(), is(1));
 	}
 
 	@Test
 	public void lazyWithoutCaching() throws Exception {
 		//given
 		AtomicInteger counter = new AtomicInteger();
-		final Maybe<Integer> lazy = null; //TODO: call lazily
+		final Maybe<Integer> lazy = Maybe.fromCallable(() -> counter.incrementAndGet());
 
 		//when
 		final Integer first = lazy.blockingGet();
@@ -137,7 +134,7 @@ public class R010_LetsMeetMaybe {
 	public void nonIdempotentWebService() throws Exception {
 		//given
 		RestClient restClient = new RestClient();
-		final Maybe<Object> result = Maybe.fromRunnable(() -> restClient.post(1));
+		final Maybe<Object> result = Maybe.fromRunnable(() -> restClient.post(1)).cache(); //remove cache
 
 		//when
 		result.blockingGet();

@@ -54,10 +54,16 @@ public class R023_CallbackToObservable {
         //when
         inbox.read("foo@example.com", email -> {
                     log.info("You have e-mail\n{}", email);
+                    if (emails.size() < 5) {
+                        emails.add(email);
+                    }
                 }
         );
         inbox.read("bar@example.com", email -> {
                     log.info("You have e-mail\n{}", email);
+                    if (emails.size() < 5) {
+                        emails.add(email);
+                    }
                 }
         );
 
@@ -68,11 +74,12 @@ public class R023_CallbackToObservable {
     @Test(timeout = 3_000)
     public void convertCallbacksToStream() throws Exception {
         //given
-        final Observable<Email> emails = Observable.create(sink -> {});
+        final Observable<Email> emails = Observable.create(sink ->
+                inbox.read("foo@example.com", sink::onNext));
 
         //when
         final List<Email> list = emails
-                //TODO: take just a few of the infinite stream
+                .take(5)
                 .toList().blockingGet();
 
         //then
@@ -82,10 +89,13 @@ public class R023_CallbackToObservable {
     @Test(timeout = 3_000)
     public void testingUsingTestObservable() throws Exception {
         //given
-        final Observable<Email> emails = Observable.create(sink -> {});
+        final Observable<Email> emails = Observable.create(sink ->
+                inbox.read("foo@example.com", sink::onNext));
 
         //when
-        emails.test()
+        emails.take(5).test()
+                .await()
+                .assertValueCount(5)
                 .assertComplete();
     }
 
@@ -102,7 +112,9 @@ public class R023_CallbackToObservable {
                 inbox.read("bar@example.com", sink::onNext));
 
         //when
-        Observable<Email> merged = null;
+        Observable<Email> merged = Observable.merge(
+        		foo, bar
+		).take(5);
 
         //then
         merged.test()
@@ -111,7 +123,7 @@ public class R023_CallbackToObservable {
                 .assertComplete();
     }
 
-    @Test
+    @Test(expected = NullPointerException.class) //remove
     public void observableDoesNotAcceptNull() throws Exception {
         Observable
                 .create(sink -> inbox.read("spam@example.com", sink::onNext))
@@ -126,7 +138,14 @@ public class R023_CallbackToObservable {
     public void handleNullAsEndOfStream() throws Exception {
         //when
         final Observable<Email> emails = Observable
-                .create(sink -> {});
+                .create(sink ->
+                        inbox.read("spam@example.com", e -> {
+                            if (e != null) {
+                                sink.onNext(e);
+                            } else {
+                                sink.onComplete();
+                            }
+                        }));
 
         //then
         emails
@@ -146,7 +165,7 @@ public class R023_CallbackToObservable {
                 inbox.read("foo@example.com", sink::onNext));
 
         //when
-        final List<Email> emails = null;
+        final List<Email> emails = foo.as(this::toList);
 
         //then
         assertThat(emails, hasSize(3));
@@ -167,7 +186,7 @@ public class R023_CallbackToObservable {
             subscriptionCount.incrementAndGet();
             log.info("Subscribing to e-mails");
             inbox.read("foo@example.com", sink::onNext);
-        });
+        }).cache().cast(Email.class);
 
         //when
         foo.subscribe();

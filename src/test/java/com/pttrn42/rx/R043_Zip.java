@@ -24,7 +24,7 @@ public class R043_Zip {
     private static final Logger log = LoggerFactory.getLogger(R043_Zip.class);
 
     /**
-     * Use ({@link com.pttrn42.rx.samples.Tuple#of(Object, Object)}) as zipper</li>
+     * Use ({@link Tuple#of(Object, Object)}) as zipper</li>
      *
      * @throws Exception
      */
@@ -56,7 +56,10 @@ public class R043_Zip {
 
         //when
         // take a number, times string length and multiply by two
-        final Observable<Double> doubles = null;
+        final Observable<Double> doubles = Observable.zip(
+                nums, strs,
+                (i, s) -> Double.valueOf(2 * i * s.length())
+        );
 
         //then
         doubles.test()
@@ -112,7 +115,8 @@ public class R043_Zip {
         );
 
         //when
-        final Observable<Tuple<Integer, String>> pairs = null;
+        final Observable<Tuple<Integer, String>> pairs = nums.zipWith(
+                strs, Tuple::of);
 
         //then
         pairs.test()
@@ -127,7 +131,7 @@ public class R043_Zip {
         final Maybe<String> str = Maybe.just("a");
 
         //when
-        final Maybe<Tuple<Integer, String>> pair = null;
+        final Maybe<Tuple<Integer, String>> pair = num.zipWith(str, Tuple::of);
 
         //then
         assertThat(pair.blockingGet(), is(Tuple.of(1, "a")));
@@ -140,7 +144,7 @@ public class R043_Zip {
         final Maybe<String> str = Maybe.empty();
 
         //when
-        final Maybe<Tuple<Integer, String>> pair = null;
+        final Maybe<Tuple<Integer, String>> pair = num.zipWith(str, Tuple::of);
 
         //then
         assertThat(pair.blockingGet(), nullValue());

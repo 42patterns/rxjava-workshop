@@ -57,7 +57,8 @@ public class R033_Primes {
 	 * TODO Dividers are numbers starting at 2 up to sqrt(x)
 	 */
 	private Observable<Integer> dividersOf(long x) {
-		return Observable.just(Long.valueOf(x).intValue());
+		final int sqrt = (int) Math.sqrt(x);
+		return Observable.range(2, sqrt - 1);
 	}
 
 	/**
@@ -96,7 +97,8 @@ public class R033_Primes {
 	 * @see Observable#any(Predicate)
 	 */
 	private Single<Boolean> isPrime(long x) {
-		return Single.never();
+		return dividersOf(x)
+				.all(div -> x % div != 0);
 	}
 
 }

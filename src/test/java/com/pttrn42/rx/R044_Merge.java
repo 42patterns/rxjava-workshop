@@ -71,13 +71,12 @@ public class R044_Merge {
 	@Test
 	public void fetchDataFromFirstAvailableServer() throws Exception {
 		//given
-		final Maybe<String> fv = Maybe.never();
-		final Maybe<String> sv = Maybe.never();
+		final Maybe<String> fv = first.findBy(42);
+		final Maybe<String> sv = second.findBy(42);
 
 		//when
-		Maybe<String> fastest = fv.mergeWith(sv)
-				.timeout(500, TimeUnit.MILLISECONDS)
-				.firstElement();
+		Maybe<String> fastest = fv.mergeWith(sv).timeout(500, TimeUnit.MILLISECONDS)
+			.firstElement();
 
 		//then
 		fastest

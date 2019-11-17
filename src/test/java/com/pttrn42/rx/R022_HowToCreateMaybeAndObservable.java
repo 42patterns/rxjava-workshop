@@ -25,7 +25,7 @@ public class R022_HowToCreateMaybeAndObservable {
 	@Test
 	public void eagerlyEvaluated() throws Exception {
 		//when
-		//TODO: destroyEarth now!
+		Maybe.just(destroyEarth());
 
 		//then
 		assertThat(destroyed.get(), is(true));
@@ -34,7 +34,7 @@ public class R022_HowToCreateMaybeAndObservable {
 	@Test
 	public void lazilyEvaluateMono() throws Exception {
 		//when
-		//TODO: destroyEarth later
+		Maybe.fromCallable(this::destroyEarth);
 
 		//then
 		assertThat(destroyed.get(), is(false));
@@ -44,12 +44,12 @@ public class R022_HowToCreateMaybeAndObservable {
 	private AtomicBoolean destroyed = new AtomicBoolean();
 
 	@Test
-	public void creatingEagerObservableFromStreamIncorrectly() throws Exception {
+	public void creatingEagerFluxFromStreamIncorrectly() throws Exception {
 		//given
 		List<Boolean> tasks = Arrays.asList(killHumanity(), destroyEarth());
 
 		//when
-		//TODO: kill humans and destroyEarth
+		Observable.fromIterable(tasks::iterator);
 
 		//then
 		assertThat(killed.get(), is(true));
@@ -57,9 +57,9 @@ public class R022_HowToCreateMaybeAndObservable {
 	}
 
 	@Test
-	public void creatingLazyFluxObservableStreamCorrectly() throws Exception {
+	public void creatingLazyFluxFromStreamCorrectly() throws Exception {
 		//when
-		//TODO: don't kill people
+		Observable.fromIterable(() -> Stream.of(killHumanity(), destroyEarth()).iterator());
 
 		//then
 		assertThat(killed.get(), is(false));
@@ -68,13 +68,12 @@ public class R022_HowToCreateMaybeAndObservable {
 
 	/**
 	 * TODO Make sure operations are run only once, despite two subscriptions
-	 *
-	 * @see Observable#cache()
+	 * @throws Exception
 	 */
 	@Test
-	public void createLazyObservableStreamThatDestroysEarthOnlyOnce() throws Exception {
+	public void createLazyFluxStreamThatDestroysEarthOnlyOnce() throws Exception {
 		//given
-		final Observable<Boolean> operations = Observable.fromIterable(() -> Stream.of(killHumanity(), destroyEarth()).iterator());
+		final Observable<Boolean> operations = Observable.fromIterable(() -> Stream.of(killHumanity(), destroyEarth()).iterator()).cache();
 		final AtomicReference<Throwable> error = new AtomicReference<>();
 
 		//when

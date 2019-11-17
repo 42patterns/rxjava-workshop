@@ -33,12 +33,12 @@ public class R046_Timeout {
 
         //when
         final Maybe<Long> withFallback = withoutTimeout
-                //TODO: set timeout
+                .timeout(100, TimeUnit.MILLISECONDS)
                 .onErrorReturn(t -> -1L);
 
         //then
         withFallback.test()
-                .awaitDone(150, TimeUnit.MILLISECONDS)
+                .await()
                 .assertValue(-1L)
                 .assertComplete();
     }
@@ -84,12 +84,18 @@ public class R046_Timeout {
         CacheServer slow = slowButReliable();
         CacheServer fast = fastButFlaky();
 
+
+        final Maybe<String> tryFast = fast.findBy(1);
+        final Maybe<String> trySlow = slow.findBy(1).cache();
+
         //when
-        final Maybe<String> response = null;
+        final Maybe<String> response = trySlow.timeout(200, TimeUnit.MILLISECONDS)
+                    .onErrorResumeNext(tryFast.onErrorResumeNext(trySlow))
+                    .doOnSuccess(s -> log.debug("Returned value: {}", s));
 
         //then
         assertThat(response.blockingGet(),
-                CoreMatchers.startsWith("Value-1-from"));
+                CoreMatchers.startsWith("Value-1 from"));
     }
 
     private CacheServer slowButReliable() {
