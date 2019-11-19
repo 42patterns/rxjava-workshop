@@ -16,10 +16,11 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
 import static com.pttrn42.rx.samples.Tuple.of;
+import static io.reactivex.Observable.just;
+import static java.util.Comparator.comparing;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
@@ -35,7 +36,7 @@ public class R073_GroupBy {
         //given
         final Observable<GroupedObservable<Integer, String>> wordsByLength = LoremIpsum
                 .wordStream()
-                .groupBy(s -> ThreadLocalRandom.current().nextInt(50)); //TODO: replace random with real grouping function
+                .groupBy(String::length);
 
         wordsByLength
                 .subscribe(words -> words.toList()
@@ -71,8 +72,11 @@ public class R073_GroupBy {
                 .groupBy(String::length);
 
         //when
-
-        final Observable<Tuple<Integer, Long>> lenToCount = Observable.empty();
+        final Observable<Tuple<Integer, Long>> lenToCount = wordsByLength
+                .flatMap(go ->
+                        go.count().flatMapObservable(v ->
+                                just(of(go.getKey(), v)))
+                );
 
         //then
         final List<Tuple<Integer, Long>> pairs = lenToCount
@@ -118,7 +122,12 @@ public class R073_GroupBy {
                 .subscribeOn(Schedulers.io());
 
         //when
-        final Observable<Tuple<String, Long>> tldToTotalLinkingRootDomains = Observable.empty();
+        final Observable<Tuple<String, Long>> tldToTotalLinkingRootDomains = domains
+                .groupBy(Domain::getTld)
+                .flatMapSingle(grouped -> grouped
+                        .reduce(0l, (seed, domain) -> seed + domain.getLinkingRootDomains())
+                        .map(count -> of(grouped.getKey(), count)))
+                .sorted(comparing(Tuple<String, Long>::getValue).reversed());
 
         //then
         assertThat(tldToTotalLinkingRootDomains.toList().blockingGet(), equalTo(Arrays.asList(

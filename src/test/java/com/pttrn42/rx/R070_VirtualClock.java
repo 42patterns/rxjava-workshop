@@ -39,7 +39,7 @@ public class R070_VirtualClock {
 	@Test
 	public void timeout() throws Exception {
 		//TODO Write whole test :-)
-		longRunning()
+		longRunning().timeout(1, TimeUnit.SECONDS)
 				.test()
 				.assertValue("OK")
 				.assertComplete();
@@ -54,12 +54,13 @@ public class R070_VirtualClock {
 	public void virtualTime() throws Exception {
 		long start = System.currentTimeMillis();
 
-		TestObserver<String> testObserver = longRunning()
+		TestScheduler scheduler = new TestScheduler();
+		TestObserver<String> testObserver = longRunning(scheduler)
 				.test()
 				.assertNoValues();
 
+		scheduler.advanceTimeBy(2000, TimeUnit.MILLISECONDS);
 		testObserver.assertSubscribed()
-				.await()
 				.assertValue("OK")
 				.assertComplete();
 

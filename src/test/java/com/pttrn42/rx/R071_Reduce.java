@@ -54,13 +54,16 @@ public class R071_Reduce {
         final Observable<Integer> nums = Observable.range(1, 10);
 
         //when
-        //TODO: calculate real reduce (not the first value)
-        final Maybe<Integer> sum = nums.firstElement();
+        final Maybe<Integer> sum = nums.reduce((l, r) -> {
+            log.info("l = {}, r = {}", l, r);
+            return l + r;
+        });
 
         //then
-        sum
-                .test()
-                .assertValue(1+2+3+4+5+6+7+8+9+10)
+        sum.test()
+                .assertValue(
+                        (((((((((1 + 2) + 3) + 4) + 5) + 6) + 7) + 8) + 9) + 10)
+                )
                 .assertComplete();
     }
 
@@ -73,11 +76,13 @@ public class R071_Reduce {
         final Observable<Integer> nums = Observable.range(1, 10);
 
         //when
-        final Maybe<Integer> factorial = nums.lastElement();
+        final Maybe<Integer> factorial = nums.reduce((l, r) -> l*r);  //TODO
 
         //then
         factorial.test()
-                .assertValue(1*2*3*4*5*6*7*8*9*10)
+                .assertValue(
+                        (((((((((1 * 2) * 3) * 4) * 5) * 6) * 7) * 8) * 9) * 10)
+                )
                 .assertComplete();
     }
 
@@ -89,7 +94,10 @@ public class R071_Reduce {
         final Observable<Integer> nums = Observable.range(1, 100);
 
         //when
-        final Single<BigInteger> factorial = nums.reduce(BigInteger.ONE, (state, x) -> state);
+        final Single<BigInteger> factorial = nums.reduce(BigInteger.ONE, (state, x) -> {
+            log.info("state = {}, x = {}", state, x);
+            return state.multiply(BigInteger.valueOf(x));
+        });
 
         //then
         factorial.test()

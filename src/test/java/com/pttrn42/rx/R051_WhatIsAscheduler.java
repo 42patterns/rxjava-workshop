@@ -49,7 +49,10 @@ public class R051_WhatIsAscheduler {
 	 * @see Schedulers#from(Executor)
 	 */
 	private Scheduler customScheduler() {
-		return Schedulers.trampoline();
+		return Schedulers.from(
+				Executors.newSingleThreadExecutor(
+						new ThreadFactoryBuilder().setNameFormat("Custom-").build()
+				)
+		);
 	}
-
 }
